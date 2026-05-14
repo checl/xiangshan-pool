@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香山游泳池完工進度追蹤</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f4f8; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        h1 { color: #2c3e50; font-size: 1.5rem; }
+        .days-count { font-size: 3rem; font-weight: bold; color: #e74c3c; margin: 1rem 0; }
+        .info { color: #7f8c8d; font-size: 0.9rem; line-height: 1.6; }
+        .footer { margin-top: 1.5rem; font-size: 0.8rem; color: #bdc3c7; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>香山游泳池工程進度</h1>
+    <p>目前已逾期</p>
+    <div id="delay-days" class="days-count">計算中...</div>
+    <p>天尚未完工</p>
+    
+    <div class="info">
+        <p>預計開工日：2025年9月2日</p>
+        <p>原定工期：120 個工作天</p>
+        <p id="target-date">計算中...</p>
+    </div>
+
+    <div class="footer">
+        * 排除週六、週日及國定假日計算
+    </div>
+</div>
+
+<script>
+    // 這裡放置計算邏輯
+    const startDate = new Date('2025-09-02');
+    const workDaysTarget = 120;
+    
+    // 簡易版國定假日 (可根據行政院人事行政總處公告手動補充)
+    const holidays = [
+        '2025-10-10', '2026-01-01', '2026-01-26', '2026-01-27', '2026-01-28', '2026-02-28', '2026-04-03', '2026-04-04', '2026-05-01'
+    ];
+
+    function calculateTargetDate(start, days) {
+        let count = 0;
+        let current = new Date(start);
+        while (count < days) {
+            current.setDate(current.getDate() + 1);
+            let dayOfWeek = current.getDay();
+            let dateStr = current.toISOString().split('T')[0];
+            // 排除週末 (0=日, 6=六) 與 國定假日
+            if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
+                count++;
+            }
+        }
+        return current;
+    }
+
+    const estimatedDate = calculateTargetDate(startDate, workDaysTarget);
+    document.getElementById('target-date').innerText = "估計完工日：" + estimatedDate.toLocaleDateString('zh-TW');
+
+    const today = new Date();
+    const diffTime = today - estimatedDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    document.getElementById('delay-days').innerText = diffDays > 0 ? diffDays : 0;
+</script>
+
+</body>
+</html>
