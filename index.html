@@ -33,22 +33,28 @@
 </div>
 
 <script>
-    // 這裡放置計算邏輯
     const startDate = new Date('2025-09-02');
     const workDaysTarget = 120;
     
-    // 簡易版國定假日 (可根據行政院人事行政總處公告手動補充)
+    // 國定假日清單
     const holidays = [
         '2025-10-10', '2026-01-01', '2026-01-26', '2026-01-27', '2026-01-28', '2026-02-28', '2026-04-03', '2026-04-04', '2026-05-01'
     ];
 
+    // 計算預計完工日
     function calculateTargetDate(start, days) {
         let count = 0;
         let current = new Date(start);
         while (count < days) {
             current.setDate(current.getDate() + 1);
             let dayOfWeek = current.getDay();
-            let dateStr = current.toISOString().split('T')[0];
+            
+            // 處理時區轉換確保字串比對正確
+            let yyyy = current.getFullYear();
+            let mm = String(current.getMonth() + 1).padStart(2, '0');
+            let dd = String(current.getDate()).padStart(2, '0');
+            let dateStr = `${yyyy}-${mm}-${dd}`;
+
             // 排除週末 (0=日, 6=六) 與 國定假日
             if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
                 count++;
@@ -57,13 +63,27 @@
         return current;
     }
 
+    // 取得預計完工日並顯示
     const estimatedDate = calculateTargetDate(startDate, workDaysTarget);
     document.getElementById('target-date').innerText = "估計完工日：" + estimatedDate.toLocaleDateString('zh-TW');
 
-    const today = new Date();
-    const diffTime = today - estimatedDate;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    // --- 修正後的日期計算邏輯 (去除時分秒干擾) ---
+    
+    // 1. 提取預計完工日的純年月日
+    const estYear = estimatedDate.getFullYear();
+    const estMonth = estimatedDate.getMonth();
+    const estDate = estimatedDate.getDate();
+    const cleanEstimated = new Date(estYear, estMonth, estDate);
 
+    // 2. 提取目前瀏覽網頁當下日期的純年月日
+    const now = new Date();
+    const cleanToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // 3. 計算時間差並轉換為精準天數
+    const diffTime = cleanToday - cleanEstimated;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    // 4. 將結果渲染到畫面上
     document.getElementById('delay-days').innerText = diffDays > 0 ? diffDays : 0;
 </script>
 
